@@ -1,8 +1,7 @@
-import { Card, Image, Skeleton } from "@rneui/themed";
+import { Text, Image, Skeleton } from "@rneui/themed";
 import { Animated, View } from "react-native";
 import { Dimensions, StyleSheet } from "react-native";
-import { Text } from "@rneui/themed";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { PhotoProps } from "../../utils/photos";
 import { DEFAULT_ROUNDNESS, margins } from "../../config/theme";
@@ -16,45 +15,37 @@ type Props = {
 };
 
 const DEFAULT_CARD_HEIGHT = getViewHeight(35);
+const CARD_HEIGHT = DEFAULT_CARD_HEIGHT + margins.medium;
 
 const DEFAULT_TEXT =
   "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi consectetur, tellus vel pulvinar vestibulum, elit erat posuere nisl, ac tincidunt libero nunc eget orci. In metus libero, mattis sed leo ut, tristique dictum est. Nam blandit pellentesque condimentum. Pellentesque nec metus quis nisi eleifend maximus eget sit amet lectus. Etiam id pellentesque metus, sit amet mattis nunc. Fusce condimentum semper venenatis. Ut placerat euismod mauris, sit amet porttitor tellus vestibulum pretium leo.";
 
 export default function PostCard({ post, isLoading, y, index }: Props) {
-  const [cardDimensions, setCardDimensions] = useState({ width: 0, height: 0 });
-
   const { height: screenHeight } = Dimensions.get("window");
-  // const height = screenHeight - 64;
+  const height = screenHeight - 10;
 
-  const onLayout = (event: {
-    nativeEvent: { layout: { width: any; height: any } };
-  }) => {
-    const { width, height } = event.nativeEvent.layout;
-    setCardDimensions({ width, height: height + margins.xSmall });
-  };
-
-  // const position = Animated.subtract(index * cardDimensions.height, y);
-  // const isDisappearing = -cardDimensions.height;
-  // const isTop = 0;
-  // const isBottom = height - cardDimensions.height;
-  // const isAppearing = height;
+  const position = Animated.subtract(index * CARD_HEIGHT, y);
+  const isDisappearing = -CARD_HEIGHT;
+  const isTop = 0;
+  const isBottom = height - CARD_HEIGHT;
+  const isAppearing = height;
   const translateY = Animated.add(
     y,
     y.interpolate({
-      inputRange: [0, index * (DEFAULT_CARD_HEIGHT + margins.medium)],
-      outputRange: [0, -index * (DEFAULT_CARD_HEIGHT + margins.medium)],
+      inputRange: [0, 0.01 + index * CARD_HEIGHT],
+      outputRange: [0, -index * CARD_HEIGHT],
       extrapolateRight: "clamp",
     })
   );
-  // const scale = position.interpolate({
-  //   inputRange: [isDisappearing, isTop, isBottom, isAppearing],
-  //   outputRange: [0.5, 1, 1, 0.5],
-  //   extrapolate: "clamp",
-  // });
-  // const opacity = position.interpolate({
-  //   inputRange: [isDisappearing, isTop, isBottom, isAppearing],
-  //   outputRange: [0.5, 1, 1, 0.5],
-  // });
+  const scale = position.interpolate({
+    inputRange: [isDisappearing, isTop, isBottom, isAppearing],
+    outputRange: [0.5, 1, 1, 0.5],
+    extrapolate: "clamp",
+  });
+  const opacity = position.interpolate({
+    inputRange: [isDisappearing, isTop, isBottom, isAppearing],
+    outputRange: [0.5, 1, 1, 0.5],
+  });
 
   const text: string = useMemo(() => {
     return DEFAULT_TEXT.split(" ")
@@ -64,8 +55,11 @@ export default function PostCard({ post, isLoading, y, index }: Props) {
 
   return (
     <Animated.View
-      // onLayout={onLayout}
-      style={{ ...styles.card, transform: [{ translateY }] }}
+      style={{
+        ...styles.card,
+        opacity,
+        transform: [{ translateY }, { scale }],
+      }}
       key={index}>
       <View style={styles.imageCard}>
         {isLoading ? (
